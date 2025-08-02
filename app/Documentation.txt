@@ -1,0 +1,76 @@
+Project Objective
+------------------------------------------------------------------------------------------------------------------------------------
+Goal: Build a real-time on-chain monitoring dashboard for the Solana blockchain that:
+
+●	Detects parent wallets funding 5 or more child wallets within a short time window.
+●	Tracks the buy/sell token activity of those child wallets.
+●	Polls new Solana transactions every 10–30 seconds.
+●	Displays an easy-to-use dashboard with sorting, filtering, and expandable session details.
+●	Designed to be extensible for future features like alerts, MEV detection, or market overlays.
+●	Timeline: ~2–3 weekends (~1 month) for delivery, aligned with part-time freelance availability (3–6 hours/day on weekends).
+
+
+Core Requirements
+Data Source:
+
+●	Use Helius API for decoded Solana transaction and token swap data (preferred for speed & simplicity over raw RPC).
+Backend:
+
+●	Python with FastAPI (for async polling and ecosystem fit).
+
+Polling:
+
+●	Runs every 10–30 seconds to detect:
+○	Parent wallets funding ≥5 child wallets within a short, configurable window (e.g. 5 mins).
+○	Token swaps (buy/sell) by those child wallets.
+
+Data Tracked:
+
+●	Parent wallet address
+●	Total SOL funded to child wallets
+●	Tokens involved (bought/sold)
+●	Timestamps of funding and swaps
+ 
+●	Time between swaps (e.g. $10 every 1 minute)
+●	Estimated time to complete a session
+
+Frontend:
+
+●	Next.js (React) dashboard with:
+○	Table view showing parent address, total SOL funded, tokens, status
+○	Sorting by total SOL funded (descending)
+○	Filtering by token symbol/address
+○	Expandable rows with child wallet addresses, SOL received/spent, timestamps
+Storage:
+
+●	Store cluster/session data for 7 days (configurable) to manage cost & DB size.
+●	Allow CSV export for client analysis.
+----------------------------------------------------------------------------------------------------------------------------------
+📊 Bundler Activity Dashboard — Trader Mode View
+Parent Wallet	Token	Total SOL Funded	Fulfilled SOL	Active / Total Wallets	DEX Used	Buy Interval	Progress	SOL Left 	🕒 Time Remaining	Next Buy ETA	Health Score	Wallet Tag	Token Trend	Last Tokens Bought
+Fx2...91a	ALON	100.0	43.0	8 / 10	Raydium / Meteora	1m	43%	57	5m 42s	0:51	89	🔁 Known Bundler	⚠️ Flat	ZAZA, BONK, JITO
+9xn...ke8	ZAZA	60.0	58.0	9 / 10	Meteora	45s	97%	2	0:45	0:38	72	🚨 New Cluster	📈 Uptrend	(New wallet)
+B32...aXq	JITO	25.0	6.0	3 / 6	Phoenix	2m	24%	19	6m 20s	1:44	41	🔁 Known Bundler	📉 Post-pump	ZAZA, CROC
+Gz1...eeT	WOOFY	42.0	42.0	10 / 10	Raydium	1m	100%	0%	✅ Completed	--	34	New Wallet	📉 Post-pump	(New wallet)
+D14...mP3	CROC	88.0	22.0	6 / 12	Meteora	1.5m	25%	66	11m 15s	1:12	65	Smart Buyer	⚠️ Flat	BONK, ALON
+________________________________________
+📊 Bundler Dashboard Column Descriptions
+Column	What It Shows
+Parent Wallet	The main wallet that is funding multiple other wallets (child wallets).
+Token	The token being bought or sold by the child wallets.
+Total SOL Funded	The total amount of SOL distributed by the parent wallet to all child wallets.
+Fulfilled SOL	How much SOL has already been spent by child wallets on token swaps.
+Active / Total Wallets	Number of child wallets that actually performed swaps / total funded wallets.
+DEX Used	Which decentralized exchanges (Raydium, Meteora, Phoenix, etc.) were used.
+Buy Interval	Average time between each child wallet’s token swap (e.g. 1 min per swap).
+Progress	% of Total SOL already used by the bundler session (Fulfilled / Total).
+SOL Left 	Amount of SOL still unspent in the session. Indicates how much buying is left.
+🕒 Time Remaining	Estimated time left to finish buying all SOL at the current buy rate.
+Next Buy ETA	Estimated time when the next child wallet will make a swap.
+Health Score	A weighted score (0–100) indicating how strong/promising the bundler session is.
+Wallet Tag	Labels if the bundler is a known actor, new wallet, or part of a botnet.
+Token Trend	Trend label showing if token price is rising 📈, flat ⚠️, or dropping 📉.
+Last Tokens Bought	Tokens that this parent wallet interacted with recently (for tracking patterns).
+________________________________________
+
+
