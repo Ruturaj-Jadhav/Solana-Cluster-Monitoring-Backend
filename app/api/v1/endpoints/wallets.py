@@ -28,7 +28,7 @@ async def get_raw_transactions(
         logger.info(f"Fetching raw transactions for wallet: {wallet_address}")
     
         # # Call the Helius service to get raw transactions
-        transactions = await helius_service.get_raw_transactions(wallet_address, 100)
+        transactions = await helius_service.get_raw_transactions(wallet_address, 300)
     
         # Return the response using the schema
         return {"transactions": transactions}
@@ -40,21 +40,6 @@ async def get_raw_transactions(
             detail=f"Failed to fetch raw transactions: {str(e)}"
         )
 
-@router.get("/parent-child-wallets/{wallet_address}")
-async def get_parent_child_wallets(
-    wallet_address: str = Path(..., description="Solana wallet address"),
-) -> Dict[str, Any]:
-    """
-    Get parent-child wallets for a specific Solana wallet address.
-    """
-    try:
-        logger.info(f"Fetching parent-child wallets for wallet: {wallet_address}")
-        transactions = await helius_service.get_raw_transactions(wallet_address, 100)
-        parent_child_wallets = helius_service.detect_parent_child_wallets(transactions, 5, 5)
-        return {"parent_child_wallets": parent_child_wallets}
-    except Exception as e:
-        logger.error(f"Error fetching parent-child wallets for wallet {wallet_address}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch parent-child wallets: {str(e)}")
 
 @router.get("/cluster-detection/{wallet_address}")
 async def get_cluster_detection(

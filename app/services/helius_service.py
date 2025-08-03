@@ -8,6 +8,18 @@ from app.core.config import settings
 
 
 SOL_MINT = "So11111111111111111111111111111111111111112"
+
+# Common stablecoins and "buying power" tokens
+STABLECOIN_MINTS = {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
+    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",   # USDT
+    "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",   # USDC (Circle)
+    "A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM",   # USTv2
+    "Gz7VkD4MacbEB6yC5XD3HcumEiYx2EtDYYrfikGsvopG",   # wsUSDC
+}
+
+# Tokens that represent "buying power" (SOL + stablecoins)
+BUYING_POWER_TOKENS = {SOL_MINT} | STABLECOIN_MINTS
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -192,8 +204,8 @@ class HeliusService:
             "summary": {
                 "clusters_found": len(clusters),
                 "total_parents": len([c for c in clusters]),
-                "total_children": sum(c["children_funded"] for c in clusters),
-                "total_children_swapped": sum(c["children_swapped"] for c in clusters)
+                "total_children": sum(c["funding_stats"]["children_funded"] for c in clusters),
+                "total_children_swapped": sum(c["swap_stats"]["children_swapped"] for c in clusters)
             },
             "clusters": clusters
         }
@@ -254,8 +266,11 @@ class HeliusService:
             
             children_data.append(child_info)
         
-        # Determine cluster type
-        cluster_type = "BUY_CLUSTER" if funding_token == SOL_MINT else "SELL_CLUSTER"
+        # Determine cluster type based on funding token
+        if funding_token in BUYING_POWER_TOKENS:
+            cluster_type = "BUY_CLUSTER"  # SOL or stablecoin funding = buying power
+        else:
+            cluster_type = "SELL_CLUSTER"  # Specific token funding = likely for selling
         
         return {
             "cluster_id": f"{parent}_{int(window_start.timestamp())}",
@@ -268,7 +283,7 @@ class HeliusService:
                 "children_funded": len(children),
                 "total_amount_sent": round(total_funding, 6),
                 "funding_token": funding_token,
-                "funding_token_symbol": "SOL" if funding_token == SOL_MINT else "TOKEN"
+                "funding_token_symbol": self._get_token_symbol(funding_token)
             },
             
             "swap_stats": {
@@ -281,4 +296,18 @@ class HeliusService:
             },
             
             "children": children_data
-        }  
+        }
+    
+    def _get_token_symbol(self, mint: str) -> str:
+        """
+        Get the human-readable symbol for a token mint address.
+        """
+        token_symbols = {
+            "So11111111111111111111111111111111111111112": "SOL",
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+            "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
+            "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU": "USDC",
+            "A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM": "USTv2",
+            "Gz7VkD4MacbEB6yC5XD3HcumEiYx2EtDYYrfikGsvopG": "wsUSDC"
+        }
+        return token_symbols.get(mint, "TOKEN")  
